@@ -1,0 +1,20 @@
+[Unit]
+Description=SAP GrokBot connector for the customer network
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sap-connector
+Group=sap-connector
+WorkingDirectory=/opt/sap-grokbot
+EnvironmentFile=/etc/sap-grokbot/connector.env
+ExecStart=/usr/bin/node sap-grokbot/connector/server.mjs
+Restart=on-failure
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -377,6 +377,8 @@ Empfehlung: ein eigenes Hauptrepo für das neue Produkt, in dem wir entwickeln; 
 
 ## 14. Umsetzungsplan
 
+Den Stand der Umsetzung und die Abnahmekriterien je Arbeitspaket dokumentiert der [Implementierungsplan](SAP-Bot-Implementierung.md). Die lokale Demo startet mit `npm run sap:demo`.
+
 Zuerst kommt ein technischer Durchstich, der die größten Risiken prüft: Tunnel durch ein Kundennetz, Fiori im Bot-Browser mit SSO und der Login unter Conditional Access.
 
 1. **Durchstich:** Connector mit Tailscale-Subnet-Router auf einem SAP-Testsystem, ein Linux-Bot-Computer mit Chrome, eigene KI, minimale Web-App mit Entra-Login. Ziel: Der Bot liest eine Fiori-App aus und füllt eine Maske nach Freigabe.

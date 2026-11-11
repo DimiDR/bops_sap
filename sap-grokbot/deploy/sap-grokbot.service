@@ -1,0 +1,31 @@
+[Unit]
+Description=SAP GrokBot Web (Next.js UI + sap API) and browser workers
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sap-grokbot
+Group=sap-grokbot
+WorkingDirectory=/opt/sap-grokbot
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/sap-grokbot/.browsers
+Environment=HOME=/var/lib/sap-grokbot
+Environment=XDG_RUNTIME_DIR=/run/sap-grokbot
+Environment=PORT=3211
+Environment=HOSTNAME=127.0.0.1
+EnvironmentFile=/etc/sap-grokbot/web.env
+# UI: http://127.0.0.1:3211/sap  API: /api/sap/*
+ExecStart=/usr/bin/npx next start --hostname 127.0.0.1 --port 3211
+Restart=on-failure
+StateDirectory=sap-grokbot
+StateDirectoryMode=0700
+RuntimeDirectory=sap-grokbot
+RuntimeDirectoryMode=0700
+UMask=0077
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+TasksMax=1024
+
+[Install]
+WantedBy=multi-user.target
