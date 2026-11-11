@@ -1,10 +1,91 @@
 import assert from "node:assert/strict";
+import { execFileSync, spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { chromium } from "playwright";
-import { createDemoHandler, startDemo } from "../web/server.mjs";
+import { createDemoHandler } from "../web/server.mjs";
 import { browserExecutable, viewport } from "../worker/computer.mjs";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
+
+async function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close((error) => (error ? reject(error) : resolve(port)));
+    });
+    server.on("error", reject);
+  });
+}
+
+function killPort(port) {
+  try {
+    const out = execFileSync("lsof", ["-tiTCP:" + port, "-sTCP:LISTEN"], { encoding: "utf8" });
+    for (const pid of out.trim().split(/\s+/).filter(Boolean)) {
+      try { process.kill(Number(pid), "SIGKILL"); } catch { /* already gone */ }
+    }
+  } catch {
+    /* nothing listening */
+  }
+}
+
+async function waitForUrl(url, timeoutMs = 120000) {
+  const started = Date.now();
+  let lastError;
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const response = await fetch(url, { redirect: "manual" });
+      if (response.status > 0 && response.status < 500) return;
+    } catch (error) {
+      lastError = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw lastError || new Error(`Timed out waiting for ${url}`);
+}
+
+async function startSapUi(t) {
+  const port = await freePort();
+  const origin = `http://127.0.0.1:${port}`;
+  killPort(port);
+  const child = spawn(
+    process.platform === "win32" ? "npx.cmd" : "npx",
+    ["next", "dev", "--hostname", "127.0.0.1", "--port", String(port)],
+    {
+      cwd: root,
+      env: { ...process.env, SAP_DEMO_PORT: String(port) },
+      stdio: ["ignore", "pipe", "pipe"],
+      detached: process.platform !== "win32",
+    },
+  );
+  let output = "";
+  child.stdout.on("data", (chunk) => { output += chunk; });
+  child.stderr.on("data", (chunk) => { output += chunk; });
+  const stop = () => {
+    try { child.stdout?.destroy(); } catch { /* ignore */ }
+    try { child.stderr?.destroy(); } catch { /* ignore */ }
+    try {
+      if (child.pid) process.kill(-child.pid, "SIGKILL");
+    } catch {
+      try { child.kill("SIGKILL"); } catch { /* ignore */ }
+    }
+    killPort(port);
+  };
+  t.after(stop);
+  try {
+    await waitForUrl(`${origin}/sap`);
+  } catch (error) {
+    stop();
+    throw new Error(`Next.js SAP UI failed to start.\n${output}\n${error}`);
+  }
+  return origin;
+}
 
 test("HTTP: approval is bound to the proposal, single-use, and invalidated by takeover", async () => {
   let note = "Liefertermin prüfen";
@@ -88,17 +169,16 @@ test("HTTP: approval is bound to the proposal, single-use, and invalidated by ta
 });
 
 test("Browser UI: live image, approval and manual input work through the page", async (t) => {
-  const demo = await startDemo({ port: 0 });
-  t.after(demo.close);
+  const origin = await startSapUi(t);
   const browser = await chromium.launch({ executablePath: browserExecutable, timeout: 10000 });
   t.after(() => browser.close());
   const fixture = await browser.newPage({ viewport });
   await fixture.setContent(await readFile(new URL("../worker/testmaske.html", import.meta.url), "utf8"));
   const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
-  page.setDefaultTimeout(8000);
-  await page.goto(demo.origin);
+  page.setDefaultTimeout(20000);
+  await page.goto(`${origin}/sap`);
   await page.getByText("Live · Bot-Modus", { exact: true }).waitFor();
-  const screenshot = await page.request.get(new URL("/api/frame?t=1", demo.origin).href);
+  const screenshot = await page.request.get(new URL("/api/sap/frame?t=1", origin).href);
   assert.match(screenshot.headers()["content-type"], /^image\/jpeg$/);
   assert.deepEqual([...(await screenshot.body()).slice(0, 2)], [255, 216]);
   await page.getByRole("button", { name: "Notiz lesen" }).click();

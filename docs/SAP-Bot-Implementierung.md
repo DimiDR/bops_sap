@@ -10,9 +10,11 @@ npm run sap:test
 npm run sap:test:browser
 ```
 
-Die Web-App läuft auf [127.0.0.1:3211](http://127.0.0.1:3211). Der Port lässt sich über `SAP_DEMO_PORT` ändern. Der Server lauscht ausschließlich auf der Loopback-Adresse. Der Prototyp verwendet synthetische Daten, eine gemeinsame lokale Demo-Sitzung und einen separaten Headless-Browser. Die Bildansicht zeigt dessen Testmaske und aktualisiert sich mehrmals pro Sekunde. Aufgaben, Protokoll und Testdaten beginnen bei einem Serverneustart neu. Ein Bild der Testmaske wird jeweils im Arbeitsspeicher erzeugt und direkt ausgeliefert.
+Die UI ist eine Next.js-Route unter [127.0.0.1:3211/sap](http://127.0.0.1:3211/sap) und wiederverwendet die Bops-Oberfläche (Sidebar, Chat, Computer-Panel, Freigabe-Karten). Der Port lässt sich über `SAP_DEMO_PORT` ändern. Next und die SAP-API lauschen auf Loopback. Backend bleibt `sap-grokbot` (Worker/Session/Computer) hinter `/api/sap/*`. Der Prototyp verwendet synthetische Daten, eine lokale Demo-Sitzung und einen separaten Headless-Browser. Freigabeprotokoll sitzt als Drawer im Chat.
 
-Ein echtes `SAP_BROWSER_TARGET` verlangt standardmäßig den Entra-Cloud-Modus (`SAP_APP_ORIGIN`, `SAP_PROXY_SECRET`, `SAP_ENTRA_GROUP`, Identity-Header). Für Einzelplatz-Tests ohne OAuth2 Proxy setzt man explizit `SAP_AUTH_MODE=none` zusammen mit `SAP_AUDIT_FILE`, `SAP_USER_MAP` und optional `SAP_LOCAL_ACTOR` (Standard `local-test`). Details und Beispielvariablen stehen in [SAP-Bot-Betrieb.md](SAP-Bot-Betrieb.md).
+**Integrationswahl:** Eigene Route `/sap` + `/api/sap/*` statt den gesamten `BopsApp`-State zu faken. So bleiben Origin-Checks, Freigabe-Bindung, Audit und `SAP_AUTH_MODE` im SAP-Backend, während Look-and-Feel aus den Bops-Komponenten kommt. Ob übernommener Bops-UI-Code unter FSL für den SAP-Einsatz freigegeben ist, entscheidet der Owner.
+
+Ein echtes `SAP_BROWSER_TARGET` verlangt standardmäßig den Entra-Cloud-Modus (`SAP_APP_ORIGIN`, `SAP_PROXY_SECRET`, `SAP_ENTRA_GROUP`, Identity-Header). Für Einzelplatz-Tests ohne OAuth2 Proxy setzt man explizit `SAP_AUTH_MODE=none` zusammen mit `SAP_AUDIT_FILE`, `SAP_USER_MAP` und optional `SAP_LOCAL_ACTOR` (Standard `local-test`). Details und Beispielvariablen stehen in [SAP-Bot-Betrieb.md](SAP-Bot-Betrieb.md). `npm run sap:demo:api` startet weiterhin nur den Node-API-Server.
 
 ### Ablauf zum Ausprobieren
 
@@ -45,7 +47,8 @@ Mit `npm run sap:test` laufen die Tests für Freigaben, Modellprofile, Connector
 
 | Modul | Verantwortung |
 | --- | --- |
-| `sap-grokbot/web/` | Oberfläche, HTTP-Endpunkte, Herkunftsprüfung und Cloud-Sitzungen |
+| `app/sap/`, `components/sap/`, `app/api/sap/` | Bops-ähnliche UI (Next) und API-Bridge zum SAP-Backend |
+| `sap-grokbot/web/` | HTTP-Backend, Herkunftsprüfung, Cloud-Sitzungen, Legacy-Hinweisseite |
 | `sap-grokbot/worker/session.mjs` | Bedienmodus, begrenzte Aufträge, Freigaben, serieller Zugriff und Protokoll |
 | `sap-grokbot/worker/computer.mjs` | Playwright-Browser, Bild, manuelle Eingabe und konfigurierbarer SAP-Browseradapter |
 | `sap-grokbot/worker/models.mjs` | Modellprofile mit begrenzten Werkzeugen |

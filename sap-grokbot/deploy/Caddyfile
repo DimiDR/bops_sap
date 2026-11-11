@@ -20,10 +20,13 @@
 			@unauthorized status 401
 			handle_response @unauthorized {
 				@home path /
-				redir @home /oauth2/start?rd=/ 302
+				redir @home /oauth2/start?rd=/sap 302
 				respond 401
 			}
 		}
+
+		@root path /
+		redir @root /sap 302
 
 		reverse_proxy 127.0.0.1:3211 {
 			header_up X-Grokbot-Proxy-Secret {$SAP_PROXY_SECRET}

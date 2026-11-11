@@ -177,7 +177,11 @@ function createLocalNoAuthWorkspaces({ openComputer, models, auditFile, orderLab
   });
 }
 
-export async function startDemo({ port = 3211, env = process.env, warn = console.warn } = {}) {
+/**
+ * Shared SAP backend used by the standalone Node server and by the Next.js `/api/sap/*` routes.
+ * Does not listen on a port — callers attach HTTP themselves (startDemo) or call getWorkspace directly.
+ */
+export async function createSapBackend({ env = process.env, warn = console.warn, publicOrigin: originOverride } = {}) {
   const models = loadModels(env);
   const authMode = resolveAuthMode(env.SAP_AUTH_MODE);
   const publicOrigin = env.SAP_APP_ORIGIN;
@@ -236,7 +240,23 @@ export async function startDemo({ port = 3211, env = process.env, warn = console
       })
       : undefined;
   const computer = workspaces ? undefined : await startComputer();
-  const closeComputers = () => workspaces ? workspaces.close() : computer.close();
+  const session = workspaces ? undefined : createSession(computer, { models });
+  const close = () => workspaces ? workspaces.close() : computer.close();
+  const identity = authMode === "none" ? localActor : (publicOrigin ? null : "local-demo");
+  return {
+    authMode,
+    identity,
+    environmentLabel: target ? "SAP-Testsystem" : "Testmaske · Synthetische Daten",
+    preferredOrigin: originOverride || publicOrigin || null,
+    getWorkspace: workspaces
+      ? (request) => workspaces.get(request)
+      : async () => ({ computer, session }),
+    close,
+  };
+}
+
+export async function startDemo({ port = 3211, env = process.env, warn = console.warn } = {}) {
+  const backend = await createSapBackend({ env, warn });
   let handle;
   const server = createServer((request, response) => handle(request, response));
   let origin;
@@ -247,17 +267,17 @@ export async function startDemo({ port = 3211, env = process.env, warn = console
       // SAP_AUTH_MODE=none is intentionally single-machine only.
       server.listen(port, "127.0.0.1", resolve);
     });
-    origin = publicOrigin || `http://127.0.0.1:${server.address().port}`;
-    handle = workspaces ? createAppHandler(workspaces.get, origin) : createDemoHandler(computer, origin, { models });
+    origin = backend.preferredOrigin || `http://127.0.0.1:${server.address().port}`;
+    handle = createAppHandler(backend.getWorkspace, origin);
   } catch (error) {
-    await closeComputers();
+    await backend.close();
     throw error;
   }
   return {
     origin,
-    authMode,
+    authMode: backend.authMode,
     async close() {
-      await Promise.all([closeComputers(), new Promise((resolve) => server.close(resolve))]);
+      await Promise.all([backend.close(), new Promise((resolve) => server.close(resolve))]);
     },
   };
 }

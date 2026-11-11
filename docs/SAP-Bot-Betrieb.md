@@ -6,7 +6,7 @@ Die Cloud-App läuft auf einer Linux-VM pro Kunde. Caddy stellt den HTTPS-Endpun
 
 ## 1. Web-App mit synthetischer Testmaske
 
-1. Auf der Cloud-VM Node.js 24, Caddy und OAuth2 Proxy installieren. Caddy mindestens in Version 2.11.2 betreiben. Den Quellcode nach `/opt/sap-grokbot` legen, den Systembenutzer `sap-grokbot` anlegen, `npm ci` ausführen und Chromium inklusive Linux-Systemabhängigkeiten mit `PLAYWRIGHT_BROWSERS_PATH=/opt/sap-grokbot/.browsers npx playwright install --with-deps chromium` installieren. Der Dienstbenutzer braucht Lese- und Ausführungsrechte für den Browser. Der Host muss den Chromium-Sandboxbetrieb erlauben.
+1. Auf der Cloud-VM Node.js 24, Caddy und OAuth2 Proxy installieren. Caddy mindestens in Version 2.11.2 betreiben. Den Quellcode nach `/opt/sap-grokbot` legen, den Systembenutzer `sap-grokbot` anlegen, `npm ci` und `npm run build` ausführen und Chromium inklusive Linux-Systemabhängigkeiten mit `PLAYWRIGHT_BROWSERS_PATH=/opt/sap-grokbot/.browsers npx playwright install --with-deps chromium` installieren. Der Dienstbenutzer braucht Lese- und Ausführungsrechte für den Browser. Der Host muss den Chromium-Sandboxbetrieb erlauben. Die UI läuft als Next.js (`/sap`); Caddy leitet auf den Next-Prozess weiter.
 2. Im Entra-Tenant eine Single-Tenant-Web-App mit Redirect-URI `https://<app-domain>/oauth2/callback` registrieren. Den Gruppen-Claim für die Pilotgruppe aktivieren und die Gruppe der Enterprise-App zuweisen. Prüfen, welcher stabile OIDC-Benutzerwert als `X-Auth-Request-User` ankommt. Diesen Wert für die SAP-Benutzerzuordnung verwenden.
 3. Die Dateien `web.env.example` und `auth.env.example` aus `sap-grokbot/deploy/` als `/etc/sap-grokbot/web.env` und `/etc/sap-grokbot/auth.env` mit echten Werten anlegen. Rechte auf Administrator und Dienst beschränken. `SAP_PROXY_SECRET` mit `openssl rand -hex 32` erzeugen und denselben Wert in der Caddy-Dienstumgebung setzen. Zusätzlich `SAP_APP_DOMAIN` für Caddy setzen. Die Secret- und Tenant-Dateien getrennt von Git verwalten.
 4. Die beiden systemd-Units installieren und starten. Die Caddy-Konfiguration mit der Dienstumgebung validieren und aktivieren. Die App und OAuth2 Proxy lauschen auf Loopback. Im Cloud-Firewallprofil nur den HTTPS-Eingang des Reverse Proxy veröffentlichen.
@@ -36,9 +36,10 @@ export SAP_USER_MAP='{"local-test":"SAP_TEST_USER"}'
 export SAP_BROWSER_TARGET='{"url":"https://sap.example/sap/bc/ui2/flp","label":"Testauftrag","loginOrigins":["https://login.microsoftonline.com"],"identitySelector":"[data-example-sap-user]","recordSelector":"[data-example-order-id]","recordValue":"4500000173","noteSelector":"[data-example-saved-note]","writes":false}'
 mkdir -p .data
 npm run sap:demo
+# UI: http://127.0.0.1:3211/sap
 ```
 
-Optional: `SAP_APP_ORIGIN=http://127.0.0.1:3211` (nur Loopback). Ein nicht-lokaler Origin wird abgelehnt. Beim Start erscheint eine deutliche Warnung. Nicht im Netz exponieren.
+Optional: `SAP_APP_ORIGIN=http://127.0.0.1:3211` (nur Loopback). Ein nicht-lokaler Origin wird abgelehnt. Beim Start erscheint eine deutliche Warnung. Nicht im Netz exponieren. Die Oberfläche ist die Bops-Chat-UI unter `/sap`; APIs unter `/api/sap/*`.
 
 ## 4. Einen SAP-Prozess anbinden
 

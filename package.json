@@ -7,7 +7,8 @@
   "scripts": {
     "setup": "scripts/setup.sh",
     "dev": "next dev",
-    "sap:demo": "node sap-grokbot/web/server.mjs",
+    "sap:demo": "node scripts/sap-demo.mjs",
+    "sap:demo:api": "node sap-grokbot/web/server.mjs",
     "sap:connector": "node sap-grokbot/connector/server.mjs",
     "sap:test": "node --test --test-name-pattern \"HTTP|Model|Connector|Cloud|Auth\" sap-grokbot/test/*.test.mjs",
     "sap:test:browser": "node --test --test-name-pattern=Browser sap-grokbot/test/demo.test.mjs",
