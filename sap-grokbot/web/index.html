@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAP GrokBot · Lokaler Prototyp</title>
+  <link rel="stylesheet" href="/demo.css">
+  <script src="/demo.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">SAP GrokBot</div>
+    <span class="badge" id="environment-label">Verbindung wird aufgebaut</span>
+  </header>
+  <main>
+    <div class="workspace">
+      <section class="panel chat" aria-labelledby="chat-title">
+        <h1 id="chat-title">Auftrag an den Bot</h1>
+        <div id="messages" class="messages" role="log" aria-label="Chatverlauf">
+          <p class="bot" id="introduction">Die Sitzung wird geladen.</p>
+        </div>
+        <form id="composer">
+          <label for="model">Auftragsverarbeitung</label>
+          <select id="model"><option value="">Lokale Befehle</option></select>
+          <label for="task">Nachricht</label>
+          <input id="task" maxlength="200" placeholder="Notiz ändern: Lieferung bestätigt" required>
+          <div class="actions">
+            <button type="submit">Senden</button>
+            <button type="button" class="secondary" id="read">Notiz lesen</button>
+          </div>
+        </form>
+        <div class="approval" id="approval" hidden>
+          <h2>Änderung freigeben</h2>
+          <dl>
+            <dt>Aktuell</dt><dd id="previous"></dd>
+            <dt>Vorschlag</dt><dd id="proposed"></dd>
+          </dl>
+          <div class="actions">
+            <button id="approve">Freigeben und speichern</button>
+            <button id="reject" class="secondary">Ablehnen</button>
+          </div>
+        </div>
+      </section>
+      <section class="panel screen" aria-labelledby="screen-title">
+        <div class="screen-header">
+          <div>
+            <h2 id="screen-title">Bot-Browser</h2>
+            <p id="screen-status" aria-live="polite">Verbindung wird aufgebaut</p>
+          </div>
+          <button id="takeover" class="secondary" disabled>Übernehmen</button>
+        </div>
+        <img id="frame" width="1000" height="620" alt="Live-Ansicht der Testmaske">
+        <form id="remote-text" hidden>
+          <label for="typing">Text an ausgewähltes Feld senden</label>
+          <input id="typing" maxlength="120" required>
+          <label><input type="checkbox" id="masked-input"> Eingabe verdecken</label>
+          <div class="actions">
+            <button type="submit">Text eingeben</button>
+            <button type="button" class="secondary" id="backspace">Zeichen löschen</button>
+            <button type="button" class="secondary" id="enter-key">Enter senden</button>
+          </div>
+        </form>
+      </section>
+    </div>
+    <details class="panel audit">
+      <summary>Freigabeprotokoll</summary>
+      <p>Ereignisse mit Korrelations-ID für diese Demo-Sitzung.</p>
+      <ol id="audit-events"></ol>
+    </details>
+  </main>
+</body>
+</html>

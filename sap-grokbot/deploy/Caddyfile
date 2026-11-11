@@ -1,0 +1,32 @@
+{$SAP_APP_DOMAIN} {
+	route {
+		request_header -X-Auth-Request-*
+		request_header -X-Grokbot-Proxy-Secret
+
+		handle /oauth2/* {
+			reverse_proxy 127.0.0.1:4180
+		}
+
+		reverse_proxy 127.0.0.1:4180 {
+			method GET
+			rewrite /oauth2/auth
+			header_up X-Forwarded-Method {method}
+			header_up X-Forwarded-Uri {uri}
+			@ok status 2xx
+			handle_response @ok {
+				request_header X-Auth-Request-User {rp.header.X-Auth-Request-User}
+				request_header X-Auth-Request-Groups {rp.header.X-Auth-Request-Groups}
+			}
+			@unauthorized status 401
+			handle_response @unauthorized {
+				@home path /
+				redir @home /oauth2/start?rd=/ 302
+				respond 401
+			}
+		}
+
+		reverse_proxy 127.0.0.1:3211 {
+			header_up X-Grokbot-Proxy-Secret {$SAP_PROXY_SECRET}
+		}
+	}
+}

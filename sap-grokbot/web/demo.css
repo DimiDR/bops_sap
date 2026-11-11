@@ -1,0 +1,38 @@
+:root { color-scheme: dark; font: 16px system-ui, sans-serif; background: #101822; color: #eef3fa; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.top { background: #162232; border-bottom: 1px solid #324458; display: flex; gap: 16px; align-items: center; padding: 18px max(24px, calc((100vw - 1360px) / 2)); }
+.brand { font-size: 1.2rem; font-weight: 700; white-space: nowrap; }
+.badge { color: #b2dce1; border: 1px solid #457078; border-radius: 20px; padding: 4px 10px; font-size: .8rem; }
+main { max-width: 1408px; margin: auto; padding: 24px; }
+.workspace { display: grid; grid-template-columns: minmax(285px, 1fr) minmax(0, 2fr); gap: 18px; align-items: start; }
+.panel { background: #162232; border: 1px solid #324458; border-radius: 12px; padding: 20px; min-width: 0; }
+h1, h2 { margin: 0; font-size: 1.15rem; }
+p { line-height: 1.5; }
+.messages { min-height: 130px; max-height: 320px; overflow: auto; margin: 14px 0; }
+.messages p { padding: 9px 12px; border-radius: 8px; margin: 0 0 8px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.bot { background: #23354b; }
+.user { background: #254845; }
+.error { background: #582e40; }
+label { display: block; margin-bottom: 6px; font-size: .9rem; }
+input, select { background: #101822; color: inherit; border: 1px solid #657a95; border-radius: 7px; padding: 10px; font: inherit; width: 100%; }
+select { margin-bottom: 10px; }
+input[type="checkbox"] { width: auto; }
+button { color: #10253b; background: #a9d4ff; border: 1px solid transparent; border-radius: 7px; padding: 8px 12px; font: inherit; font-weight: 650; cursor: pointer; }
+button.secondary { background: #23354b; border-color: #637b97; color: #eef3fa; }
+button:disabled { opacity: .48; cursor: default; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.screen-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+#screen-status { color: #b2dce1; font-size: .85rem; margin: 4px 0 0; }
+#frame { width: 100%; height: auto; display: block; background: #0b131e; border-radius: 8px; }
+#frame.controllable { cursor: crosshair; outline: 2px solid #a9d4ff; }
+#remote-text, .approval { margin-top: 16px; }
+.approval { border-top: 1px solid #637b97; padding-top: 16px; }
+dt { color: #b2dce1; font-size: .85rem; }
+dd { margin: 4px 0 12px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.audit { margin-top: 18px; overflow-wrap: anywhere; }
+summary { cursor: pointer; }
+@media (max-width: 820px) {
+  main { padding: 14px; }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+}

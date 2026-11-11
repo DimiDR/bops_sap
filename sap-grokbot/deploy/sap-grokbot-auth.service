@@ -1,0 +1,17 @@
+[Unit]
+Description=SAP GrokBot Entra authentication proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+EnvironmentFile=/etc/sap-grokbot/auth.env
+ExecStart=/usr/local/bin/oauth2-proxy --config=/opt/sap-grokbot/sap-grokbot/deploy/oauth2-proxy.cfg
+Restart=on-failure
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

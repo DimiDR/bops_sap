@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>SAP-Testmaske</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f6fa; color: #172a41; font: 18px system-ui, sans-serif; }
+    header { display: flex; align-items: center; gap: 14px; padding: 20px 34px; background: #102946; color: white; }
+    header span { border: 1px solid #80aee0; border-radius: 5px; padding: 4px 9px; font-size: 14px; }
+    main { margin: 32px 48px; }
+    h1 { font-size: 36px; margin: 0 0 6px; }
+    h2 { font-size: 23px; margin: 0 0 16px; }
+    article { margin-top: 28px; padding: 24px; background: white; border: 1px solid #cdd9e7; border-radius: 10px; }
+    label, input { display: block; }
+    input { font: inherit; padding: 11px; margin: 8px 0 16px; width: 100%; border: 1px solid #778da7; border-radius: 5px; }
+    button { background: #0960ad; color: white; border: 0; border-radius: 6px; padding: 10px 18px; font: inherit; }
+    output { display: block; color: #185336; margin-top: 16px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    small { color: #455a73; }
+  </style>
+</head>
+<body>
+  <header><span>DEMO</span><strong>Auftragsverwaltung</strong></header>
+  <main>
+    <h1>Auftrag 4500000173</h1>
+    <small>Nordwind Musterhandel · Testdaten</small>
+    <article>
+      <h2>Auftragsdetails</h2>
+      <label for="note">Interne Notiz</label>
+      <input id="note" maxlength="120" value="Liefertermin prüfen" autocomplete="off">
+      <button type="button" id="save">Speichern</button>
+      <output>Gespeichert: <strong data-testid="saved-note">Liefertermin prüfen</strong></output>
+    </article>
+  </main>
+  <script>
+    document.querySelector("#save").addEventListener("click", () => {
+      document.querySelector("[data-testid='saved-note']").textContent = document.querySelector("#note").value;
+    });
+  </script>
+</body>
+</html>
