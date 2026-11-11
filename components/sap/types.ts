@@ -21,6 +21,9 @@ export type SapState = {
   message?: string;
   identity: string | null;
   authMode: "entra" | "none";
+  /** "entra" only when SAP_APP_ORIGIN cloud mode uses proxy identity headers. */
+  authSource: "local" | "entra";
+  authSourceLabel: string;
   environmentLabel: string;
 };
 

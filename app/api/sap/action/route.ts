@@ -13,12 +13,15 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null);
     if (!body || typeof body.action !== "string") throw new DemoError(400, "Ungültiger Auftrag.");
     const backend = await getSapBackend();
-    const workspace = await backend.getWorkspace(requestFromHeaders(request));
+    const headers = requestFromHeaders(request);
+    const workspace = await backend.getWorkspace(headers);
     const result = await workspace.session.dispatch(body);
     return sapJson(200, {
       ...result,
-      identity: backend.identity,
+      identity: backend.resolveIdentity(headers),
       authMode: backend.authMode,
+      authSource: backend.authSource,
+      authSourceLabel: backend.authSourceLabel,
       environmentLabel: backend.environmentLabel,
     });
   } catch (error) {

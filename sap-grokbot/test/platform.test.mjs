@@ -6,7 +6,7 @@ import { PassThrough, Readable, Writable } from "node:stream";
 import { finished } from "node:stream/promises";
 import { test } from "node:test";
 import { createConnectorHandler, loadConnector, selectRule } from "../connector/server.mjs";
-import { createCloudWorkspaces, resolveAuthMode, startDemo } from "../web/server.mjs";
+import { createCloudWorkspaces, createSapBackend, resolveAuthMode, startDemo } from "../web/server.mjs";
 import { loadModels } from "../worker/models.mjs";
 import { createSession } from "../worker/session.mjs";
 
@@ -197,6 +197,29 @@ test("Auth mode defaults to Entra and rejects misconfigured no-auth or SAP targe
     },
   }), /SAP_ENTRA_GROUP|SAP_PROXY_SECRET/);
   assert.equal(warnings.length, 0);
+});
+
+test("Auth source labels local demo vs Entra cloud", async (t) => {
+  const local = await createSapBackend({ env: {}, warn() {} });
+  t.after(local.close);
+  assert.equal(local.authSource, "local");
+  assert.equal(local.authSourceLabel, "Lokaler Testmodus ohne Anmeldung");
+  assert.equal(local.resolveIdentity(), "Demo");
+
+  const directory = await mkdtemp(join(tmpdir(), "sap-auth-label-"));
+  t.after(async () => { await rm(directory, { recursive: true, force: true }); });
+  const none = await createSapBackend({
+    warn() {},
+    env: {
+      SAP_AUTH_MODE: "none",
+      SAP_AUDIT_FILE: join(directory, "audit.jsonl"),
+      SAP_LOCAL_ACTOR: "desk-user",
+    },
+  });
+  t.after(none.close);
+  assert.equal(none.authSource, "local");
+  assert.equal(none.authSourceLabel, "Lokaler Testmodus ohne Anmeldung");
+  assert.equal(none.resolveIdentity(), "desk-user");
 });
 
 test("Auth none mode uses a fixed local identity without Entra headers", async (t) => {

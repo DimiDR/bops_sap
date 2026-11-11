@@ -6,6 +6,8 @@ declare module "../../sap-grokbot/web/server.mjs" {
     publicOrigin?: string;
   }): Promise<{
     authMode: "entra" | "none";
+    authSource: "local" | "entra";
+    authSourceLabel: string;
     identity: string | null;
     environmentLabel: string;
     preferredOrigin: string | null;
@@ -13,6 +15,7 @@ declare module "../../sap-grokbot/web/server.mjs" {
       computer: { screenshot: () => Promise<Buffer>; close: () => Promise<void> };
       session: { snapshot: (message?: string) => unknown; dispatch: (command: unknown) => Promise<Record<string, unknown>> };
     }>;
+    resolveIdentity: (request?: { headers?: Record<string, string> }) => string;
     close: () => Promise<void>;
   }>;
   export function createDemoHandler(...args: unknown[]): unknown;

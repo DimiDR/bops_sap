@@ -18,7 +18,8 @@ export function SapSidebar({
   onNewChat: () => void;
   onCollapse?: () => void;
 }) {
-  const identity = state?.identity || (state?.authMode === "none" ? "local-test" : "Entra-Benutzer");
+  const identity = state?.identity || "Demo";
+  const authSourceLabel = state?.authSourceLabel || "Lokaler Testmodus ohne Anmeldung";
   return (
     <aside className="flex h-full min-h-0 w-full flex-col border-r border-white/10 bg-[#10100F] text-[#F4F4F0]">
       <div className="flex items-center gap-2 px-4 pb-2 pt-4">
@@ -70,8 +71,8 @@ export function SapSidebar({
         <div id="sap-identity" className="mt-1 truncate text-[13px] font-medium text-[#F4F4F0]">
           {identity}
         </div>
-        <div className="mt-0.5 text-[11px] text-[#8A8A88]">
-          {state?.authMode === "none" ? "Lokaler Testmodus" : "Entra ID"}
+        <div id="sap-auth-source" className="mt-0.5 truncate text-[11px] text-[#8A8A88]">
+          {authSourceLabel}
         </div>
       </div>
     </aside>

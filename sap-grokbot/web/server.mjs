@@ -242,15 +242,25 @@ export async function createSapBackend({ env = process.env, warn = console.warn,
   const computer = workspaces ? undefined : await startComputer();
   const session = workspaces ? undefined : createSession(computer, { models });
   const close = () => workspaces ? workspaces.close() : computer.close();
-  const identity = authMode === "none" ? localActor : (publicOrigin ? null : "local-demo");
+  // Entra only when cloud mode actually expects proxy identity headers (SAP_APP_ORIGIN set).
+  const authSource = authMode === "none" || !publicOrigin ? "local" : "entra";
+  const identity = authMode === "none" ? localActor : (authSource === "local" ? "Demo" : null);
   return {
     authMode,
+    authSource,
+    authSourceLabel: authSource === "entra" ? "Entra ID" : "Lokaler Testmodus ohne Anmeldung",
     identity,
     environmentLabel: target ? "SAP-Testsystem" : "Testmaske · Synthetische Daten",
     preferredOrigin: originOverride || publicOrigin || null,
     getWorkspace: workspaces
       ? (request) => workspaces.get(request)
       : async () => ({ computer, session }),
+    /** Display identity for the sidebar: fixed local actor/demo, or Entra subject from headers. */
+    resolveIdentity(request) {
+      if (identity) return identity;
+      const actor = request?.headers?.["x-auth-request-user"];
+      return typeof actor === "string" && LOCAL_ACTOR_PATTERN.test(actor) ? actor : "Entra-Benutzer";
+    },
     close,
   };
 }
